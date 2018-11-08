@@ -1,0 +1,27 @@
+.label {
+  align-items: center;
+  display: flex;
+  font-size: 14pt;
+  justify-content: space-between;
+}
+
+.label span {
+  flex-grow: 1;
+  margin-right: 20px;
+}
+
+.input {
+  flex-grow: 2;
+  font-size: 14pt;
+  min-width: 100px;
+  padding: 10px;
+}
+
+.input:valid {
+  border: solid 2px green;
+}
+
+.error-message {
+  color: red;
+  align-self: flex-end; 
+}
