@@ -30,40 +30,69 @@ function inputPattern(value) {
   return value.match(/.{8,}/) ? true : 'This needs to be at least 8 chars long!';
 }
 
-function App() {
-  const [usernameValue, setUsernameValue] = useState('');
-  const [usernameErrors, setUsernameErrors] = useState([]);
 
-  const [passwordValue, setPasswordValue] = useState('');
-  const [passwordErrors, setPasswordErrors] = useState([]);
+Object.entries({ key1: 1, key2: 2 }) // [["key1", 1], ["key2", 2]]
 
-  const onUsernameInput = ({ target }) => {
-    setUsernameValue(target.value);
-    setUsernameErrors(validate(target.value, [requiredInput]));
+function useValidation(validations) {
+  const inputValidators = Object.entries(validations).reduce((acc, [key, validators]) => {
+    const [value, setValue] = useState('');
+    const [errors, setErrors] = useState([]);
+
+    const onInput = ({ target }) => {
+      setValue(target.value);
+      setErrors(validate(target.value, validators));
+    };
+
+    acc[key] = {
+      value,
+      errors,
+      setErrors,
+      onInput
+    };
+
+    return acc;
+  }, {});
+
+  const formOnSubmit = (event) => {
+    const totalNumberOfErrors = Object.entries(inputValidators).reduce((numOfErrors, [key, inputValidator]) => {
+      const errors = validate(inputValidator.value, validations[key]);
+      inputValidator.setErrors(errors);
+      numOfErrors += errors.length;
+      return numOfErrors;
+    }, 0);
+    if (totalNumberOfErrors > 0) {
+      event.preventDefault();
+    } else {
+      alert('ALERT!');
+    }
   };
 
-  const onPasswordInput = ({target}) => {
-    setPasswordValue(target.value);
-    setPasswordErrors(validate(target.value, [inputPattern]));
-  }
+  return [inputValidators, formOnSubmit];
+}
+
+function App() {
+  const [{ username, password }, formOnSubmit] = useValidation({
+    username: [requiredInput],
+    password: [inputPattern]
+  });
 
   return (
-    <Form>
+    <Form onSubmit={formOnSubmit}>
       <FormField
         label="Username"
         name="username"
         type="text"
-        value={usernameValue}
-        onInput={onUsernameInput}
-        errors={usernameErrors}
+        value={username.value}
+        onInput={username.onInput}
+        errors={username.errors}
       />
       <FormField
         label="Password"
         name="password"
         type="password"
-        value={passwordValue}
-        onInput={onPasswordInput}
-        errors={passwordErrors}
+        value={password.value}
+        onInput={password.onInput}
+        errors={password.errors}
       />
       <Button type="submit">Submit</Button>
     </Form>
